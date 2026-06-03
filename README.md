@@ -81,6 +81,19 @@ Expected first run behavior: the coordinator ranks AAPL using only the saved
 local files and keeps confidence aligned with the freshness and completeness of
 those files.
 
+## Live Browser Demo
+
+```bash
+uv run python demo_server.py
+```
+
+Then open <http://127.0.0.1:8000/> and click **Run orchestrator**. The page
+starts `run_stock_ranking.py` through the local demo server and streams the
+Python process output into the browser.
+
+The live run still requires the setup files created by the POC build order:
+`.environment_id`, `.specialist_ids.json`, and `.coordinator_id`.
+
 ## One-Time AAPL Data Prep
 
 Use Claude Code or a manual step once to fill:

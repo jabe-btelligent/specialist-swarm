@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAPL Stock Ranking Live Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d8dee8;
+      --soft: #f5f7fb;
+      --panel: #ffffff;
+      --bad: #d92d20;
+      --warn: #f79009;
+      --good: #079455;
+      --blue: #2563eb;
+      --shadow: 0 18px 60px rgba(23, 32, 51, 0.10);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(245, 247, 251, 0.94), rgba(255, 255, 255, 1) 440px),
+        radial-gradient(circle at 12% 0%, rgba(37, 99, 235, 0.12), transparent 320px);
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding: 10px 0 26px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 860px;
+      font-size: clamp(2rem, 4vw, 4.1rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: 1.25rem;
+    }
+
+    h3 {
+      margin-bottom: 7px;
+      font-size: 1rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    button {
+      min-height: 42px;
+      border: 0;
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      background: var(--blue);
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      background: #98a2b3;
+      box-shadow: none;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #344054;
+      font-size: 0.83rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .stamp {
+      min-width: 230px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 8px 28px rgba(23, 32, 51, 0.06);
+    }
+
+    .stamp span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stamp strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.05rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid {
+      grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+      align-items: stretch;
+      margin-top: 22px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .gauge-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 440px;
+    }
+
+    .gauge {
+      width: min(100%, 360px);
+      padding: 12px 6px 0;
+    }
+
+    .gauge-face {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      overflow: hidden;
+      border-radius: 999px 999px 0 0;
+      background: conic-gradient(from 270deg at 50% 100%, var(--bad) 0deg 54deg, var(--warn) 54deg 126deg, var(--good) 126deg 180deg, transparent 180deg 360deg);
+    }
+
+    .gauge-face::after {
+      content: "";
+      position: absolute;
+      left: 9%;
+      right: 9%;
+      bottom: 0;
+      height: 82%;
+      border-radius: 999px 999px 0 0;
+      background: var(--panel);
+    }
+
+    .needle {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      z-index: 2;
+      width: 4px;
+      height: 86%;
+      background: #101828;
+      border-radius: 999px;
+      transform: translateX(-50%) rotate(-90deg);
+      transform-origin: 50% 100%;
+      transition: transform 400ms ease;
+      box-shadow: 0 0 0 1px rgba(16, 24, 40, 0.05);
+    }
+
+    .needle::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -10px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #101828;
+      transform: translateX(-50%);
+      border: 4px solid var(--panel);
+    }
+
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .score {
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    .score .number {
+      display: block;
+      min-height: 84px;
+      font-size: clamp(3rem, 8vw, 5.8rem);
+      line-height: 0.95;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .rating {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      margin-top: 10px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(102, 112, 133, 0.12);
+      color: #344054;
+      font-weight: 800;
+    }
+
+    .rating.buy {
+      background: rgba(7, 148, 85, 0.10);
+      color: #067647;
+    }
+
+    .rating.hold {
+      background: rgba(247, 144, 9, 0.12);
+      color: #b54708;
+    }
+
+    .rating.sell,
+    .rating.error {
+      background: rgba(217, 45, 32, 0.10);
+      color: #b42318;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .status-dot::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #98a2b3;
+    }
+
+    .status-dot.running::before {
+      background: var(--warn);
+    }
+
+    .status-dot.done::before {
+      background: var(--good);
+    }
+
+    .status-dot.error::before {
+      background: var(--bad);
+    }
+
+    .flow {
+      margin-top: 18px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+    }
+
+    .flow-lane {
+      display: grid;
+      grid-template-columns: minmax(145px, 1fr) 40px minmax(145px, 1fr) 40px minmax(145px, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .flow-box {
+      min-height: 108px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .flow-box strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .flow-box.active {
+      border-color: rgba(37, 99, 235, 0.42);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+    .arrow {
+      color: var(--muted);
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .agent-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .agent-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 12px 34px rgba(23, 32, 51, 0.08);
+    }
+
+    .agent-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .agent-score {
+      min-width: 72px;
+      text-align: right;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .agent-card.running {
+      border-color: rgba(247, 144, 9, 0.50);
+    }
+
+    .agent-card.done {
+      border-color: rgba(7, 148, 85, 0.42);
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #eaecf0;
+      overflow: hidden;
+      margin: 10px 0 14px;
+    }
+
+    .bar span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--warn), var(--good));
+      transition: width 400ms ease;
+    }
+
+    .two-col {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      margin-top: 18px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .metric {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 1.1rem;
+    }
+
+    .terminal {
+      min-height: 360px;
+      max-height: 560px;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: #101828;
+      color: #f8fafc;
+      font: 0.84rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    details + details {
+      margin-top: 10px;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 800;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      color: var(--muted);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    details[open] summary::after {
+      content: "-";
+    }
+
+    .details-body {
+      padding: 0 16px 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin: 14px 0 0;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: #101828;
+      color: #f8fafc;
+      font: 0.82rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    section {
+      margin-top: 34px;
+    }
+
+    footer {
+      margin-top: 30px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 900px) {
+      header,
+      .hero-grid,
+      .agent-grid,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .stamp {
+        min-width: 0;
+      }
+
+      .flow-lane {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow {
+        transform: rotate(90deg);
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      .panel,
+      .flow {
+        padding: 16px;
+      }
+
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gauge-panel {
+        min-height: 370px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>AAPL Stock Ranking Live Demo</h1>
+        <p class="subtitle">Press run to start the Python orchestrator process from the browser. The backend streams stdout as the coordinator loads local synthetic data, delegates to specialist agents, and writes the final transcript.</p>
+        <div class="pill-row" aria-label="System facts">
+          <span class="pill">Live Python subprocess</span>
+          <span class="pill">Ticker: AAPL</span>
+          <span class="pill">Local-only input files</span>
+          <span class="pill">Synthetic POC data</span>
+        </div>
+      </div>
+      <aside class="stamp">
+        <span>Demo server</span>
+        <strong id="serverStatus">Ready</strong>
+      </aside>
+    </header>
+
+    <section class="grid hero-grid" aria-label="Final ranking">
+      <div class="panel gauge-panel">
+        <div>
+          <h2>Final Ranking</h2>
+          <p class="muted">The gauge updates when the coordinator output includes a rating or score.</p>
+        </div>
+
+        <div class="gauge" aria-label="Score gauge">
+          <div class="gauge-face">
+            <div class="needle" id="needle" aria-hidden="true"></div>
+          </div>
+          <div class="gauge-labels">
+            <span>Bad</span>
+            <span>Watch</span>
+            <span>Good</span>
+          </div>
+          <div class="score">
+            <span class="number" id="scoreValue">--</span>
+            <span class="rating" id="ratingValue">WAITING</span>
+            <p class="muted">Score out of 5.00</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Run Control</h2>
+        <p class="muted">This calls <code>/api/run</code>, which starts <code>run_stock_ranking.py</code> on the local demo server. The process still requires a prepared Anthropic environment and <code>ANTHROPIC_API_KEY</code>.</p>
+        <div class="controls">
+          <button id="runButton" type="button">Run orchestrator</button>
+          <span class="status-dot" id="runStatus">Idle</span>
+        </div>
+        <div class="terminal" id="terminal" aria-live="polite">Waiting for a live run...</div>
+      </div>
+    </section>
+
+    <section aria-label="Orchestration flow">
+      <h2>What Happens Live</h2>
+      <div class="flow">
+        <div class="flow-lane">
+          <div class="flow-box" id="flowLoad">
+            <strong>1. Load local context</strong>
+            <p class="muted">Reads the manifest, trend JSON, quarterly report, and sentiment Markdown.</p>
+          </div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-box" id="flowDelegate">
+            <strong>2. Delegate to specialists</strong>
+            <p class="muted">Coordinator sends work to kurstrend, financial report, and sentiment agents.</p>
+          </div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-box" id="flowSynthesize">
+            <strong>3. Synthesize ranking</strong>
+            <p class="muted">Coordinator streams the final Buy, Hold, or Sell result with reasons and risks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Subagent results">
+      <h2>Intermediate Subagent Status</h2>
+      <div class="grid agent-grid">
+        <article class="agent-card" id="kurstrendCard">
+          <div class="agent-head">
+            <div>
+              <h3>Kurstrend Analyst</h3>
+              <p class="muted">SMA / EMA trend from saved JSON</p>
+            </div>
+            <div class="agent-score" id="kurstrendState">waiting</div>
+          </div>
+          <div class="bar"><span id="kurstrendBar"></span></div>
+          <p class="muted">Input: <code>local-data/stocks/AAPL/kurstrend/data.json</code></p>
+        </article>
+
+        <article class="agent-card" id="financialCard">
+          <div class="agent-head">
+            <div>
+              <h3>Financial Report Analyst</h3>
+              <p class="muted">Fundamentals from quarterly Markdown</p>
+            </div>
+            <div class="agent-score" id="financialState">waiting</div>
+          </div>
+          <div class="bar"><span id="financialBar"></span></div>
+          <p class="muted">Input: <code>local-data/stocks/AAPL/financial_report/latest_quarterly_report.md</code></p>
+        </article>
+
+        <article class="agent-card" id="sentimentCard">
+          <div class="agent-head">
+            <div>
+              <h3>Sentiment Analyst</h3>
+              <p class="muted">Market sentiment packet</p>
+            </div>
+            <div class="agent-score" id="sentimentState">waiting</div>
+          </div>
+          <div class="bar"><span id="sentimentBar"></span></div>
+          <p class="muted">Input: <code>local-data/stocks/AAPL/sentiment/latest_sentiment.md</code></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="grid two-col" aria-label="Inputs and scoring">
+      <div class="panel">
+        <h2>Mocked Input Snapshot</h2>
+        <div class="metric-grid">
+          <div class="metric">
+            <span>Last close</span>
+            <strong>$315.20</strong>
+          </div>
+          <div class="metric">
+            <span>SMA 20 / 200</span>
+            <strong>300.77 / 264.01</strong>
+          </div>
+          <div class="metric">
+            <span>EMA 20 / 200</span>
+            <strong>300.26 / 262.80</strong>
+          </div>
+          <div class="metric">
+            <span>Revenue</span>
+            <strong>$130.2B</strong>
+          </div>
+          <div class="metric">
+            <span>EPS</span>
+            <strong>$2.41</strong>
+          </div>
+          <div class="metric">
+            <span>Sentiment</span>
+            <strong>67 / 100</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Coordinator Weights</h2>
+        <p class="muted">The live coordinator is instructed to combine specialist scores with these weights.</p>
+        <div class="metric-grid">
+          <div class="metric">
+            <span>Financial</span>
+            <strong>40%</strong>
+          </div>
+          <div class="metric">
+            <span>Kurstrend</span>
+            <strong>35%</strong>
+          </div>
+          <div class="metric">
+            <span>Sentiment</span>
+            <strong>25%</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Collapsible raw inputs">
+      <h2>Raw Local Inputs</h2>
+      <details>
+        <summary>Kurstrend JSON</summary>
+        <div class="details-body">
+          <pre>{
+  "ticker": "AAPL",
+  "status": "fetched",
+  "currency": "USD",
+  "source": "Yahoo Finance via yfinance with curl_cffi Chrome impersonation",
+  "fetched_at_utc": "2026-06-03T13:31:23+00:00",
+  "price_date": "2026-06-02",
+  "history_close_count": 1255,
+  "last_close": 315.2,
+  "sma": {
+    "sma_20": 300.7685,
+    "sma_200": 264.0141,
+    "sma_1000": 202.8121
+  },
+  "ema": {
+    "ema_20": 300.2621,
+    "ema_200": 262.8028,
+    "ema_1000": 212.4045
+  }
+}</pre>
+        </div>
+      </details>
+
+      <details>
+        <summary>Financial Report Markdown</summary>
+        <div class="details-body">
+          <pre># Apple Inc. (AAPL) - Q1 FY2026 Financial Report
+Quarter Ended: December 28, 2025
+Report Date: January 30, 2026
+
+Executive Summary:
+Apple delivered a record quarter driven by strong iPhone 17 demand, continued Services growth, and a rebound in Greater China. Total revenue reached $130.2B, up 6% year-over-year. EPS of $2.41 surpassed consensus estimates of $2.36.
+
+Highlights:
+- Revenue: $130.2B, +6.0% YoY
+- Gross margin: 44.5%, +60 bps
+- Operating margin: 31.1%, +70 bps
+- Net income: $36.3B, +7.1% YoY
+- Diluted EPS: $2.41, +10.6% YoY
+- Services revenue: $29.9B, +7.2% YoY
+- Free cash flow: $36.9B
+- Total liquidity: $134.4B
+- Net cash position: $37.1B
+
+Key Risks:
+1. China regulatory environment
+2. Antitrust exposure in the EU and US
+3. Supply chain concentration
+4. AI monetization remains unproven at scale
+5. Valuation at about 28x forward P/E
+
+Data is synthetic and generated for simulation purposes only. Not financial advice.</pre>
+        </div>
+      </details>
+
+      <details>
+        <summary>Sentiment Markdown</summary>
+        <div class="details-body">
+          <pre># Apple Inc. (AAPL) - Sentiment Data
+Fetched: 2026-06-03
+Time Window: Last 30 days
+
+Market Data:
+- Current Price: $315.20 (+2.90% on the day)
+- Consensus Price Target: $310.31 average, $400 high, $215 low
+- Implied upside from consensus: about 18.7%
+
+Analyst Ratings:
+- Consensus: Strong Buy (8.1/10)
+- Breakdown: 30 Buy / 16 Hold / 2 Sell
+- Buy percentage: 79%
+
+Bullish Signals:
+- Record Q1 2026 earnings already reported
+- Strong analyst consensus
+- Potential Apple-Visa mobile payments partnership
+- Investor search interest up 200% week-over-week
+- MarketBeat follower growth up 110.5% week-over-week
+
+Bearish / Risk Flags:
+- Tim Cook stepping down as CEO effective 2026-09-01
+- Mac supply constraints and higher memory costs
+- China supply issues remain a near-term downside risk
+- RSI at 70.58 suggests short-term overbought conditions
+- Current ratio 0.89
+- No near-term catalyst with 5%+ price impact
+- MarketBeat page views down 33.3% week-over-week
+
+Overall Sentiment Score:
+- AltIndex Sentiment Score: 67/100
+- Mixed news sentiment: 67% mixed
+- Analyst tone: mildly to strongly positive</pre>
+        </div>
+      </details>
+    </section>
+
+    <footer>
+      POC visualization only. It uses saved local inputs from this repository and synthetic report data; it is not financial advice.
+    </footer>
+  </main>
+
+  <script>
+    const runButton = document.getElementById("runButton");
+    const runStatus = document.getElementById("runStatus");
+    const serverStatus = document.getElementById("serverStatus");
+    const terminal = document.getElementById("terminal");
+    const scoreValue = document.getElementById("scoreValue");
+    const ratingValue = document.getElementById("ratingValue");
+    const needle = document.getElementById("needle");
+    const finalText = [];
+
+    const agents = {
+      "Kurstrend Analyst": {
+        card: document.getElementById("kurstrendCard"),
+        state: document.getElementById("kurstrendState"),
+        bar: document.getElementById("kurstrendBar")
+      },
+      "Financial Report Analyst": {
+        card: document.getElementById("financialCard"),
+        state: document.getElementById("financialState"),
+        bar: document.getElementById("financialBar")
+      },
+      "Sentiment Analyst": {
+        card: document.getElementById("sentimentCard"),
+        state: document.getElementById("sentimentState"),
+        bar: document.getElementById("sentimentBar")
+      }
+    };
+
+    function setStatus(label, state) {
+      runStatus.textContent = label;
+      runStatus.className = `status-dot ${state || ""}`.trim();
+      serverStatus.textContent = label;
+    }
+
+    function setFlow(id) {
+      ["flowLoad", "flowDelegate", "flowSynthesize"].forEach((flowId) => {
+        document.getElementById(flowId).classList.toggle("active", flowId === id);
+      });
+    }
+
+    function resetView() {
+      terminal.textContent = "";
+      finalText.length = 0;
+      scoreValue.textContent = "--";
+      ratingValue.textContent = "RUNNING";
+      ratingValue.className = "rating";
+      needle.style.transform = "translateX(-50%) rotate(-90deg)";
+      Object.values(agents).forEach((agent) => {
+        agent.card.className = "agent-card";
+        agent.state.textContent = "waiting";
+        agent.bar.style.width = "0%";
+      });
+      setFlow("flowLoad");
+    }
+
+    function appendLine(text) {
+      terminal.textContent += text + "\n";
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function markAgent(name, state) {
+      const agent = agents[name];
+      if (!agent) return;
+      agent.card.className = `agent-card ${state}`;
+      agent.state.textContent = state === "done" ? "replied" : "running";
+      agent.bar.style.width = state === "done" ? "100%" : "55%";
+    }
+
+    function updateFinalResult() {
+      const text = finalText.join("\n");
+      const ratingMatch = text.match(/\b(Buy|Hold|Sell)\b/i);
+      const scoreMatch =
+        text.match(/overall score[^0-9]*(\d(?:\.\d+)?)/i) ||
+        text.match(/weighted score[^0-9]*(\d(?:\.\d+)?)/i) ||
+        text.match(/score[^0-9]*(\d(?:\.\d+)?)[\s/]*(?:out of)?\s*5/i);
+
+      if (scoreMatch) {
+        const score = Math.max(1, Math.min(5, Number.parseFloat(scoreMatch[1])));
+        const degrees = -90 + ((score - 1) / 4) * 180;
+        scoreValue.textContent = score.toFixed(2);
+        needle.style.transform = `translateX(-50%) rotate(${degrees}deg)`;
+      }
+
+      if (ratingMatch) {
+        const rating = ratingMatch[1].toUpperCase();
+        ratingValue.textContent = rating;
+        ratingValue.className = `rating ${rating.toLowerCase()}`;
+      }
+    }
+
+    function handleOutput(text) {
+      appendLine(text);
+
+      if (text.includes("Loading local")) setFlow("flowLoad");
+      if (text.includes("[delegate ->]") || text.includes("[thread spawned]")) setFlow("flowDelegate");
+      if (text.includes("[stock ranking finished]")) setFlow("flowSynthesize");
+
+      Object.keys(agents).forEach((name) => {
+        if (text.includes(`[delegate ->]      ${name}`) || text.includes(`[thread spawned]   ${name}`) || text.includes(`[thread running]   ${name}`)) {
+          markAgent(name, "running");
+        }
+        if (text.includes(`[reply <-]         ${name}`)) {
+          markAgent(name, "done");
+        }
+      });
+
+      if (!text.startsWith("  [") && !text.startsWith("Loading local") && !text.startsWith("Starting session") && !text.startsWith("Coordinator transcript saved")) {
+        finalText.push(text);
+        updateFinalResult();
+      }
+    }
+
+    runButton.addEventListener("click", () => {
+      resetView();
+      runButton.disabled = true;
+      setStatus("Running", "running");
+
+      const stream = new EventSource("/api/run");
+
+      stream.addEventListener("output", (event) => {
+        handleOutput(event.data);
+      });
+
+      stream.addEventListener("done", (event) => {
+        handleOutput(event.data || "Run complete.");
+        updateFinalResult();
+        setStatus("Complete", "done");
+        runButton.disabled = false;
+        stream.close();
+      });
+
+      stream.addEventListener("error_event", (event) => {
+        handleOutput(event.data || "Run failed.");
+        ratingValue.textContent = "ERROR";
+        ratingValue.className = "rating error";
+        setStatus("Error", "error");
+        runButton.disabled = false;
+        stream.close();
+      });
+
+      stream.onerror = () => {
+        handleOutput("Connection to demo server closed unexpectedly.");
+        setStatus("Disconnected", "error");
+        runButton.disabled = false;
+        stream.close();
+      };
+    });
+  </script>
+</body>
+</html>
