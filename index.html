@@ -156,6 +156,31 @@
       font-size: 1.05rem;
     }
 
+    .stamp .stonks {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin-top: 12px;
+      border-radius: var(--radius);
+      border: 2px solid var(--good);
+      transform: rotate(-1.5deg);
+    }
+
+    .stamp .stonks:hover {
+      transform: rotate(1.5deg) scale(1.03);
+      transition: transform 200ms ease;
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-8deg); }
+      50% { transform: rotate(8deg); }
+    }
+
+    .wiggle {
+      display: inline-block;
+      animation: wiggle 1.1s ease-in-out infinite;
+    }
+
     .grid {
       display: grid;
       gap: 18px;
@@ -597,18 +622,21 @@
   <main>
     <header>
       <div>
-        <h1>AAPL Stock Ranking Live Demo</h1>
-        <p class="subtitle">Press run to start the Python orchestrator process from the browser. The backend streams stdout as the coordinator loads local synthetic data, delegates to specialist agents, and writes the final transcript.</p>
+        <h1>AAPL Stock Ranking Live Demo <span class="wiggle">📈🚀</span></h1>
+        <p class="subtitle">Press run to start the Python orchestrator process from the browser. The backend streams stdout as the coordinator loads local synthetic data, delegates to specialist agents, and writes the final transcript. Stonks only go up. 🤑</p>
         <div class="pill-row" aria-label="System facts">
           <span class="pill">Live Python subprocess</span>
           <span class="pill">Ticker: AAPL</span>
           <span class="pill">Local-only input files</span>
           <span class="pill">Synthetic POC data</span>
+          <span class="pill">📊 To the moon 🌕</span>
+          <span class="pill">Not financial advice (obviously)</span>
         </div>
       </div>
       <aside class="stamp">
         <span>Demo server</span>
         <strong id="serverStatus">Ready</strong>
+        <img class="stonks" src="https://media3.giphy.com/media/v1.Y2lkPWZjZGU1NDk1dHdjd2kyZjkwNXNxcDY2cnk3cnYycmdrZGVwaTdrdmp4eXhtN2UxcSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/YnkMcHgNIMW4Yfmjxr/giphy.gif" alt="Stonks" width="333" height="250">
       </aside>
     </header>
 
@@ -640,10 +668,10 @@
         <h2>Run Control</h2>
         <p class="muted">This calls <code>/api/run</code>, which starts <code>run_stock_ranking.py</code> on the local demo server. The process still requires a prepared Anthropic environment and <code>ANTHROPIC_API_KEY</code>.</p>
         <div class="controls">
-          <button id="runButton" type="button">Run orchestrator</button>
+          <button id="runButton" type="button">🚀 Run orchestrator (stonks!)</button>
           <span class="status-dot" id="runStatus">Idle</span>
         </div>
-        <div class="terminal" id="terminal" aria-live="polite">Waiting for a live run...</div>
+        <div class="terminal" id="terminal" aria-live="polite">Waiting for a live run... (the stonks are restless 📈)</div>
       </div>
     </section>
 
