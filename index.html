@@ -43,7 +43,21 @@
       pointer-events: none;
     }
 
+    #matrixCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.45;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.35) 60%, transparent);
+      -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.35) 60%, transparent);
+    }
+
     main {
+      position: relative;
+      z-index: 1;
       width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
       padding: 28px 0 56px;
@@ -618,6 +632,7 @@
   </style>
 </head>
 <body>
+  <canvas id="matrixCanvas" aria-hidden="true"></canvas>
   <canvas id="confettiCanvas" aria-hidden="true"></canvas>
   <main>
     <header>
@@ -902,6 +917,49 @@ Overall Sentiment Score:
   </main>
 
   <script>
+    // Simple animated matrix rain in the background.
+    (function matrixRain() {
+      const canvas = document.getElementById("matrixCanvas");
+      const ctx = canvas.getContext("2d");
+      const glyphs = "アイウエオカキクケコサシスセソ0123456789$€¥AAPL↑↓".split("");
+      const fontSize = 16;
+      let columns = 0;
+      let drops = [];
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        columns = Math.ceil(canvas.width / fontSize);
+        drops = new Array(columns).fill(0).map(() => Math.random() * -50);
+      }
+
+      window.addEventListener("resize", resize);
+      resize();
+
+      function draw() {
+        // Soft green-tinted fade so trails dim toward the page colour.
+        ctx.fillStyle = "rgba(244, 248, 245, 0.10)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = `${fontSize}px ui-monospace, Menlo, Consolas, monospace`;
+
+        for (let i = 0; i < drops.length; i += 1) {
+          const char = glyphs[Math.floor(Math.random() * glyphs.length)];
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+          // Bright leading glyph, calmer emerald body.
+          ctx.fillStyle = Math.random() > 0.92 ? "#34d399" : "rgba(7, 148, 85, 0.65)";
+          ctx.fillText(char, x, y);
+          if (y > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i] += 1;
+        }
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    })();
+
     const runButton = document.getElementById("runButton");
     const runStatus = document.getElementById("runStatus");
     const serverStatus = document.getElementById("serverStatus");
@@ -1083,6 +1141,13 @@ Overall Sentiment Score:
     }
 
     function handleSubagentOutputLine(text) {
+      const embeddedStartIndex = text.indexOf("SUBAGENT_OUTPUT_START:");
+      if (embeddedStartIndex > 0) {
+        const prefix = text.slice(0, embeddedStartIndex).trim();
+        if (prefix) finalText.push(prefix);
+        return handleSubagentOutputLine(text.slice(embeddedStartIndex));
+      }
+
       const startMatch = text.match(/^SUBAGENT_OUTPUT_START:\s*(.+)$/);
       if (startMatch) {
         const name = resolveAgentName(startMatch[1]);
@@ -1095,7 +1160,7 @@ Overall Sentiment Score:
         return true;
       }
 
-      if (text.trim() === "SUBAGENT_OUTPUT_END") {
+      if (text.trim().startsWith("SUBAGENT_OUTPUT_END")) {
         if (currentAgentOutput && agents[currentAgentOutput]) {
           agents[currentAgentOutput].state.textContent = "output received";
           agents[currentAgentOutput].card.className = "agent-card done";
@@ -1126,23 +1191,54 @@ Overall Sentiment Score:
       }
     }
 
+    function extractFinalScore(text) {
+      const scoreLines = text
+        .split(/\n/)
+        .map((line) => line.replace(/\*\*/g, "").trim())
+        .filter((line) => /\b(?:overall|weighted)\s+score\b/i.test(line));
+
+      for (const line of scoreLines) {
+        const scoreAfterEquals = line.match(/=\s*([1-5](?:\.\d+)?)\s*(?:\/\s*5)?\b/i);
+        if (scoreAfterEquals) return Number.parseFloat(scoreAfterEquals[1]);
+
+        const fractionScores = Array.from(line.matchAll(/\b([1-5](?:\.\d+)?)\s*\/\s*5\b/gi));
+        if (fractionScores.length > 0) {
+          return Number.parseFloat(fractionScores[fractionScores.length - 1][1]);
+        }
+
+        const directScore = line.match(/\b(?:overall|weighted)\s+score\s*[:=-]\s*([1-5](?:\.\d+)?)\b/i);
+        if (directScore) return Number.parseFloat(directScore[1]);
+      }
+
+      return null;
+    }
+
+    function extractFinalRating(text) {
+      const ratingLines = text
+        .split(/\n/)
+        .map((line) => line.replace(/\*\*/g, "").trim())
+        .filter((line) => /\bfinal\s+rating\b/i.test(line));
+
+      const explicitRating = ratingLines
+        .map((line) => line.match(/\b(Buy|Hold|Sell)\b/i))
+        .find(Boolean);
+
+      return explicitRating ? explicitRating[1].toUpperCase() : null;
+    }
+
     function updateFinalResult() {
       const text = finalText.join("\n");
-      const ratingMatch = text.match(/\b(Buy|Hold|Sell)\b/i);
-      const scoreMatch =
-        text.match(/overall score[^0-9]*(\d(?:\.\d+)?)/i) ||
-        text.match(/weighted score[^0-9]*(\d(?:\.\d+)?)/i) ||
-        text.match(/score[^0-9]*(\d(?:\.\d+)?)[\s/]*(?:out of)?\s*5/i);
+      const rating = extractFinalRating(text);
+      const parsedScore = extractFinalScore(text);
 
-      if (scoreMatch) {
-        const score = Math.max(1, Math.min(5, Number.parseFloat(scoreMatch[1])));
+      if (parsedScore !== null && !Number.isNaN(parsedScore)) {
+        const score = Math.max(1, Math.min(5, parsedScore));
         const degrees = -90 + ((score - 1) / 4) * 180;
         scoreValue.textContent = score.toFixed(2);
         needle.style.transform = `translateX(-50%) rotate(${degrees}deg)`;
       }
 
-      if (ratingMatch) {
-        const rating = ratingMatch[1].toUpperCase();
+      if (rating) {
         ratingValue.textContent = rating;
         ratingValue.className = `rating ${rating.toLowerCase()}`;
         if (!finalConfettiFired) {
