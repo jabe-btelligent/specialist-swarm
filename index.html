@@ -50,9 +50,10 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      opacity: 0.45;
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.35) 60%, transparent);
-      -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.35) 60%, transparent);
+      background: #000;
+      opacity: 0.92;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.55) 65%, transparent);
+      -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.55) 65%, transparent);
     }
 
     main {
@@ -937,8 +938,8 @@ Overall Sentiment Score:
       resize();
 
       function draw() {
-        // Soft green-tinted fade so trails dim toward the page colour.
-        ctx.fillStyle = "rgba(244, 248, 245, 0.10)";
+        // Classic black fade so trails dim into the dark backdrop.
+        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.font = `${fontSize}px ui-monospace, Menlo, Consolas, monospace`;
 
@@ -946,8 +947,8 @@ Overall Sentiment Score:
           const char = glyphs[Math.floor(Math.random() * glyphs.length)];
           const x = i * fontSize;
           const y = drops[i] * fontSize;
-          // Bright leading glyph, calmer emerald body.
-          ctx.fillStyle = Math.random() > 0.92 ? "#34d399" : "rgba(7, 148, 85, 0.65)";
+          // Bright white-green leading glyph, classic green body.
+          ctx.fillStyle = Math.random() > 0.92 ? "#c6ffe0" : "#00ff66";
           ctx.fillText(char, x, y);
           if (y > canvas.height && Math.random() > 0.975) {
             drops[i] = 0;
