@@ -82,9 +82,45 @@
 
     h1 {
       max-width: 860px;
-      font-size: clamp(2rem, 4vw, 4.1rem);
-      line-height: 1;
+      margin-top: 6px;
+      font-size: clamp(1.1rem, 2vw, 1.7rem);
+      line-height: 1.05;
       letter-spacing: 0;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 22px 10px 12px;
+      border-radius: 999px;
+      background: #0a0f0a;
+      box-shadow: 0 12px 36px rgba(0, 255, 102, 0.30);
+      text-decoration: none;
+      color: #00ff66;
+      font-weight: 900;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: clamp(46px, 7vw, 70px);
+      height: clamp(46px, 7vw, 70px);
+      border-radius: 50%;
+      background: #00ff66;
+      color: #04210f;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: clamp(1.1rem, 2vw, 1.8rem);
+    }
+
+    .brand-name {
+      font-size: clamp(2.6rem, 7vw, 5.6rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: #00ff66;
     }
 
     h2 {
@@ -638,7 +674,11 @@
   <main>
     <header>
       <div>
-        <h1>AAPL Stock Ranking Live Demo <span class="wiggle">📈🚀</span></h1>
+        <a class="brand" href="#" aria-label="TechBros team">
+          <span class="brand-mark">&lt;/&gt;</span>
+          <span class="brand-name">TechBros</span>
+        </a>
+        <h1>AAPL Stock Demo <span class="wiggle">📈🚀</span></h1>
         <p class="subtitle">Press run to start the Python orchestrator process from the browser. The backend streams stdout as the coordinator loads local synthetic data, delegates to specialist agents, and writes the final transcript. Stonks only go up. 🤑</p>
         <div class="pill-row" aria-label="System facts">
           <span class="pill">Live Python subprocess</span>
