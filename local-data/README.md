@@ -19,7 +19,7 @@ local-data/stocks/AAPL/
 │   └── latest_quarterly_report.md
 └── sentiment/
     ├── metadata.json
-    └── data.json
+    └── latest_sentiment.md
 ```
 
 Current POC ticker: `AAPL`.
@@ -30,4 +30,5 @@ periods for EMA.
 `financial_report/latest_quarterly_report.md` contains the latest quarterly
 report as Markdown.
 
-`sentiment/data.json` contains `sentiment_value`.
+`sentiment/latest_sentiment.md` contains the saved Markdown market sentiment
+packet.

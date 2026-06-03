@@ -36,7 +36,7 @@ Local files use a deliberately small contract:
 local-data/stocks/AAPL/
 ├── kurstrend/data.json
 ├── financial_report/latest_quarterly_report.md
-└── sentiment/data.json
+└── sentiment/latest_sentiment.md
 ```
 
 Use the files like this:
@@ -45,7 +45,7 @@ Use the files like this:
 | --- | --- |
 | `kurstrend/data.json` | `last_close`, `sma_20`, `sma_200`, `sma_1000`, `ema_20`, `ema_200`, `ema_1000` |
 | `financial_report/latest_quarterly_report.md` | Latest quarterly report as Markdown |
-| `sentiment/data.json` | Current `sentiment_value` |
+| `sentiment/latest_sentiment.md` | Markdown sentiment packet with market data, analyst ratings, bullish/bearish signals, catalysts, scores, and sources |
 
 ## Agents
 
@@ -53,7 +53,7 @@ Use the files like this:
 | --- | --- | --- |
 | `kurstrend` | SMA/EMA trend from saved JSON | Technical score 1-5 |
 | `financial_report` | Latest quarterly report Markdown | Fundamental score 1-5 |
-| `sentiment` | Current sentiment value from saved JSON | Sentiment score 1-5 |
+| `sentiment` | Saved Markdown sentiment packet | JSON with signal, score, evidence, risks, catalysts, and confidence |
 | coordinator | Delegates, weights scores, synthesizes final result | Buy / Hold / Sell |
 
 ## Coordinator Weights

@@ -24,7 +24,7 @@ DATA_FILES = [
     DATA_ROOT / "financial_report" / "metadata.json",
     DATA_ROOT / "financial_report" / "latest_quarterly_report.md",
     DATA_ROOT / "sentiment" / "metadata.json",
-    DATA_ROOT / "sentiment" / "data.json",
+    DATA_ROOT / "sentiment" / "latest_sentiment.md",
 ]
 OUTPUT_DIR = Path("outputs")
 

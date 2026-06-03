@@ -8,10 +8,10 @@
     "financial_report",
     "sentiment"
   ],
-  "status": "dummy_files_created_no_data_downloaded",
+  "status": "local_files_prepared",
   "contracts": {
     "kurstrend": "kurstrend/data.json",
     "financial_report": "financial_report/latest_quarterly_report.md",
-    "sentiment": "sentiment/data.json"
+    "sentiment": "sentiment/latest_sentiment.md"
   }
 }

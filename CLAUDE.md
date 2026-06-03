@@ -37,7 +37,7 @@ Specialists:
 
 - `kurstrend`: saved SMA/EMA values from JSON
 - `financial_report`: latest quarterly report as Markdown
-- `sentiment`: saved current `sentiment_value` from JSON
+- `sentiment`: saved Markdown sentiment packet
 
 Runner:
 
@@ -54,7 +54,7 @@ Current local data contract:
 local-data/stocks/AAPL/
 ├── kurstrend/data.json
 ├── financial_report/latest_quarterly_report.md
-└── sentiment/data.json
+└── sentiment/latest_sentiment.md
 ```
 
 Use the files like this:
@@ -63,9 +63,9 @@ Use the files like this:
 | --- | --- |
 | `kurstrend/data.json` | `last_close`, `sma_20`, `sma_200`, `sma_1000`, `ema_20`, `ema_200`, `ema_1000` |
 | `financial_report/latest_quarterly_report.md` | Latest quarterly report in Markdown |
-| `sentiment/data.json` | Current `sentiment_value` |
+| `sentiment/latest_sentiment.md` | Markdown sentiment packet with market data, analyst ratings, bullish/bearish signals, catalysts, scores, and sources |
 
-The current files contain dummy values. Do not present them as real AAPL data.
+Use only the local files. Do not present templated or stale files as fresh data.
 
 ## Diagram
 

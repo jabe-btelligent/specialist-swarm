@@ -14,7 +14,7 @@ The agents then rank the stock only from those local files.
 | Coordinator | Fan out to specialists, synthesize scores, return Buy / Hold / Sell |
 | Kurstrend Analyst | Analyze saved SMA/EMA values |
 | Financial Report Analyst | Analyze the latest quarterly report Markdown |
-| Sentiment Analyst | Analyze saved `sentiment_value` |
+| Sentiment Analyst | Analyze the saved Markdown sentiment packet |
 
 ## Local Data Layout
 
@@ -31,11 +31,11 @@ local-data/stocks/AAPL/
 │   └── latest_quarterly_report.md
 └── sentiment/
     ├── metadata.json
-    └── data.json
+    └── latest_sentiment.md
 ```
 
-The files contain dummy data right now. No market, report, or sentiment data has
-been downloaded by this bootstrap.
+The runtime does not download data. Replace or refresh local files before
+running when newer inputs are needed.
 
 `kurstrend/data.json`:
 
@@ -55,13 +55,7 @@ been downloaded by this bootstrap.
 }
 ```
 
-`sentiment/data.json`:
-
-```json
-{
-  "sentiment_value": 0.35
-}
-```
+`sentiment/latest_sentiment.md` contains the saved market sentiment packet.
 
 ## Flow Diagram
 
@@ -83,9 +77,9 @@ uv run python create_coordinator.py
 uv run python run_stock_ranking.py
 ```
 
-Expected first run behavior: because the local data files are dummy inputs, the
-coordinator should keep confidence low and mention that real AAPL data must
-replace the dummy values.
+Expected first run behavior: the coordinator ranks AAPL using only the saved
+local files and keeps confidence aligned with the freshness and completeness of
+those files.
 
 ## One-Time AAPL Data Prep
 

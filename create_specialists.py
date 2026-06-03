@@ -59,14 +59,16 @@ SPECIALISTS = [
         "model": "claude-sonnet-4-6",
         "system": (
             "You are the Sentiment Analyst for a stock-ranking coordinator.\n\n"
-            "Your only job is sentiment analysis from saved news/social/analyst snippets. "
+            "Your only job is sentiment analysis from a saved market sentiment packet. "
             "For this POC the ticker is AAPL.\n\n"
-            "Use only local-data/stocks/AAPL/sentiment/data.json. "
+            "Use only local-data/stocks/AAPL/sentiment/latest_sentiment.md. "
             "Do not browse the internet.\n\n"
-            "The JSON contract contains sentiment_value on a -1 to 1 scale, where "
-            "-1 is very negative, 0 is neutral, and 1 is very positive. Convert "
-            "that into a sentiment score from 1 to 5 where 5 is strongly positive.\n\n"
-            "Return one concise message with: signal, score, key evidence, and risks."
+            "The input is Markdown, not JSON. It may include market data, analyst "
+            "ratings, bullish and bearish signals, upcoming catalysts, overall "
+            "sentiment scores, and sources. Weigh the bullish and bearish evidence "
+            "and assign a sentiment score from 1 to 5 where 5 is strongly positive.\n\n"
+            "Return JSON to the coordinator with exactly these keys: signal, score, "
+            "key_evidence, risks, catalysts, confidence. Keep arrays concise."
         ),
     },
 ]

@@ -1,10 +1,17 @@
 {
   "ticker": "AAPL",
   "subagent": "sentiment",
-  "purpose": "sentiment analysis from saved news/social/analyst snippets",
-  "status": "dummy",
-  "source_type": "dummy_data_to_be_replaced_once_before_runtime",
+  "purpose": "sentiment analysis from a saved Markdown market sentiment packet",
+  "status": "provided",
+  "source_type": "saved_markdown_sentiment_packet",
+  "contract": "sentiment/latest_sentiment.md",
   "expected_contents": [
-    "sentiment_value"
+    "market_data",
+    "analyst_ratings",
+    "bullish_signals",
+    "bearish_risk_flags",
+    "upcoming_catalysts",
+    "overall_sentiment_score",
+    "sources"
   ]
 }
