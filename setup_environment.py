@@ -1,10 +1,10 @@
 """
-Create the cloud Environment that the Deal Desk session runs in.
+Create the cloud Environment that the stock-ranking session runs in.
 
 Safe to run multiple times — if `.environment_id` already exists, it's reused.
 
 Usage:
-    python setup_environment.py
+    uv run python setup_environment.py
 """
 
 import os

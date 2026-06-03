@@ -79,9 +79,3 @@ These are created by setup/build scripts and should not be committed:
 - `.specialist_ids.json`
 - `.coordinator_id`
 - `.last_session_id`
-
-## Legacy Reference
-
-Some old deal-desk example files remain in the repo (`skills/`, `synthetic-data/`,
-`run_deal_desk.py`). Treat them as reference only unless the user asks to clean
-them up or port more behavior.
