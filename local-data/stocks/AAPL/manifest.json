@@ -1,0 +1,17 @@
+{
+  "ticker": "AAPL",
+  "company_name": "Apple Inc.",
+  "poc_scope": "single-stock ranking",
+  "data_policy": "local-only; no runtime crawling",
+  "subagents": [
+    "kurstrend",
+    "financial_report",
+    "sentiment"
+  ],
+  "status": "dummy_files_created_no_data_downloaded",
+  "contracts": {
+    "kurstrend": "kurstrend/data.json",
+    "financial_report": "financial_report/latest_quarterly_report.md",
+    "sentiment": "sentiment/data.json"
+  }
+}

@@ -1,14 +1,15 @@
 """
-Create the coordinator agent that orchestrates the specialist swarm.
+Create the coordinator agent for the AAPL stock-ranking POC.
 
-The coordinator's roster is the four specialists created by create_specialists.py.
-The coordinator decides which specialists to consult, in what order, and how to
-synthesise their outputs into the final deliverable.
+The coordinator orchestrates three specialists:
+- Kurstrend Analyst
+- Financial Report Analyst
+- Sentiment Analyst
 
 Saves the coordinator's ID to .coordinator_id.
 
 Usage:
-    python create_coordinator.py
+    uv run python create_coordinator.py
 """
 
 import json
@@ -20,55 +21,55 @@ from dotenv import load_dotenv
 
 
 COORDINATOR_SYSTEM = """\
-You are the Senior Partner running the Deal Desk. An inbound RFP has just
-arrived. Your job is to orchestrate the specialists, synthesise their work,
-and produce a single branded proposal response document.
+You are the Stock Ranking Coordinator for a proof of concept.
+
+Your task is to rank exactly one stock: AAPL.
 
 # Your roster
 
 You can call these specialists:
-- Pricing Specialist: commercial terms recommendation
-- Legal Reviewer: contract flags and counter-positions
-- Technical Fit Specialist: product capability fit
-- Competitive Intel Analyst: who else is in the deal and how to position
+- Kurstrend Analyst: SMA, EMA, RSI, MACD, volatility, support/resistance
+- Financial Report Analyst: saved quarterly/annual report fundamentals
+- Sentiment Analyst: saved news, social, and analyst sentiment snippets
 
-# How to run a deal
+# Data rule
 
-1. Read the RFP yourself first. Note the customer, scope, and any obvious
-   curveballs.
+Use only the local AAPL context supplied in the user message. Do not browse the
+internet and do not ask specialists to browse. This POC intentionally runs from
+pre-saved data under local-data/stocks/AAPL/.
 
-2. Delegate to ALL FOUR specialists in parallel. Each gets:
-   - The full RFP text
-   - A clear, narrow brief stating what you need from them
-   - A deadline ("answer in one message, ~300 words")
+# How to run the ranking
 
-3. Synthesise their outputs into a single proposal response. The response
-   should cover:
-   - Executive summary (3 bullets)
-   - Our understanding of the customer's need
-   - Why we're the right fit (drawing on Technical Fit + Competitive Intel)
-   - Commercial proposal (drawing on Pricing)
-   - Contract approach (drawing on Legal)
-   - Risks and how we mitigate them
+1. Read the AAPL local context yourself first.
+2. Delegate to ALL THREE specialists in parallel.
+3. Ask each specialist for a score from 1 to 5 plus concise evidence and risks.
+4. Synthesize the final result into:
+   - Final rating: Buy / Hold / Sell
+   - Overall score from 1 to 5
+   - Component scores: kurstrend, financial_report, sentiment
+   - Top 3 reasons for the rating
+   - Top risks or missing data
+   - Confidence: low / medium / high
 
-4. Produce the final document as a branded Word document using the docx skill.
-   Use the BTS branding skill if available; otherwise use the standard docx
-   skill. The deliverable is the docx itself, not a chat message.
+# Scoring guidance
 
-# How to talk to specialists
+Use a simple weighted score:
+- financial_report: 40%
+- kurstrend: 35%
+- sentiment: 25%
 
-When delegating, be direct: "Pricing Specialist: for this RFP, recommend
-terms. Include discount band and red-line concessions. Cite past-wins.json
-where relevant."
+Map the weighted score to the final rating:
+- 4.0 to 5.0: Buy
+- 2.5 to 3.9: Hold
+- 1.0 to 2.4: Sell
 
-When you receive a specialist's reply, accept it. Don't second-guess. If
-you genuinely disagree, send the specialist a follow-up — but only if it
-matters.
+If local data is missing or still templated, lower confidence and say exactly
+which local files must be filled before the ranking is meaningful.
 
 # Tone
 
-Senior partner running a real deal. Confident, terse, decisive. You move
-fast because the RFP deadline is real.
+Short, direct, investment-committee style. This is not financial advice; it is
+a POC ranking based only on saved local data.
 """
 
 
@@ -89,8 +90,8 @@ def main() -> None:
     )
 
     coordinator = client.beta.agents.create(
-        name="Deal Desk Senior Partner",
-        model="claude-opus-4-7",  # Coordinator deserves the most capable model
+        name="AAPL Stock Ranking Coordinator",
+        model="claude-opus-4-7",
         system=COORDINATOR_SYSTEM,
         tools=[{"type": "agent_toolset_20260401"}],
         multiagent={
@@ -101,8 +102,8 @@ def main() -> None:
             ],
         },
         metadata={
-            "hackathon": "partner-basecamp-2026",
-            "track": "specialist-swarm",
+            "poc": "stock-ranking",
+            "ticker": "AAPL",
             "role": "coordinator",
         },
     )
@@ -110,7 +111,7 @@ def main() -> None:
     Path(".coordinator_id").write_text(coordinator.id)
     print(f"Coordinator created: {coordinator.id}")
     print(f"Roster: {list(specialist_ids.keys())}")
-    print(f"\nNext: python upload_skills.py then python run_deal_desk.py")
+    print("\nNext: uv run python run_stock_ranking.py")
 
 
 if __name__ == "__main__":

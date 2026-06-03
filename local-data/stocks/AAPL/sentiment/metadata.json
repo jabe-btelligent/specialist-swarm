@@ -1,0 +1,10 @@
+{
+  "ticker": "AAPL",
+  "subagent": "sentiment",
+  "purpose": "sentiment analysis from saved news/social/analyst snippets",
+  "status": "dummy",
+  "source_type": "dummy_data_to_be_replaced_once_before_runtime",
+  "expected_contents": [
+    "sentiment_value"
+  ]
+}

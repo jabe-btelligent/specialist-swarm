@@ -1,0 +1,10 @@
+{
+  "ticker": "AAPL",
+  "subagent": "financial_report",
+  "purpose": "fundamental analysis from saved company report data",
+  "status": "dummy",
+  "source_type": "dummy_markdown_to_be_replaced_once_before_runtime",
+  "expected_contents": [
+    "latest quarterly report as markdown"
+  ]
+}

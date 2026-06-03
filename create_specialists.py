@@ -1,17 +1,13 @@
 """
-Create four specialist sub-agents for the Deal Desk swarm.
+Create three specialist sub-agents for the AAPL stock-ranking POC.
 
-Each specialist gets:
-- A narrow system prompt
-- The agent toolset (file ops, web search, web fetch, bash)
-- A skill that matches its domain (uploaded separately by upload_skills.py)
+Each specialist has one narrow job and reads the local AAPL data prepared under:
+local-data/stocks/AAPL/<specialist>/
 
-Saves the resulting agent IDs to .specialist_ids.json so create_coordinator.py
-can reference them.
+No skills are required for this POC.
 
 Usage:
-    export ANTHROPIC_API_KEY="sk-ant-..."
-    python create_specialists.py
+    uv run python create_specialists.py
 """
 
 import json
@@ -24,77 +20,53 @@ from dotenv import load_dotenv
 
 SPECIALISTS = [
     {
-        "key": "pricing",
-        "name": "Pricing Specialist",
+        "key": "kurstrend",
+        "name": "Kurstrend Analyst",
         "model": "claude-sonnet-4-6",
         "system": (
-            "You are the Pricing Specialist in a Deal Desk. Your job is to "
-            "recommend commercial terms for inbound RFPs.\n\n"
-            "Inputs you'll receive:\n"
-            "- The RFP text\n"
-            "- The pricing-playbook skill (your authoritative pricing rules)\n"
-            "- past-wins.json (recent comparable deals)\n\n"
-            "Your output: a one-page commercial recommendation covering:\n"
-            "1. List price + recommended discount band\n"
-            "2. Term and payment structure\n"
-            "3. Any commercial concessions you'd accept and which you'd refuse\n"
-            "4. Risks to the margin\n\n"
-            "Be specific about numbers. Cite the past-wins data when you use it."
+            "You are the Kurstrend Analyst for a stock-ranking coordinator.\n\n"
+            "Your only job is technical trend analysis for the requested ticker. "
+            "For this POC the ticker is AAPL.\n\n"
+            "Use only local-data/stocks/AAPL/kurstrend/data.json. "
+            "Do not browse the internet.\n\n"
+            "The JSON contract contains: last_close, sma.sma_20, sma.sma_200, "
+            "sma.sma_1000, ema.ema_20, ema.ema_200, ema.ema_1000.\n\n"
+            "Assess whether price is above or below the moving averages, whether "
+            "shorter averages confirm the longer trend, and assign a technical "
+            "score from 1 to 5 where 5 is strongly bullish.\n\n"
+            "Return one concise message with: signal, score, key evidence, and risks."
         ),
     },
     {
-        "key": "legal",
-        "name": "Legal Reviewer",
+        "key": "financial_report",
+        "name": "Financial Report Analyst",
         "model": "claude-sonnet-4-6",
         "system": (
-            "You are the Legal Reviewer in a Deal Desk. Your job is to read "
-            "an RFP and flag every clause that conflicts with our standard "
-            "negotiation positions.\n\n"
-            "Inputs you'll receive:\n"
-            "- The RFP text\n"
-            "- The legal-checklist skill (your authoritative position library)\n\n"
-            "Your output: a structured list of flags, each with:\n"
-            "1. The RFP requirement\n"
-            "2. Why it conflicts with our standard\n"
-            "3. Our recommended counter-position\n"
-            "4. Severity: blocker / negotiable / acceptable\n\n"
-            "Be precise. Don't flag boilerplate just because it's there — "
-            "only call out things that genuinely deviate from our checklist."
+            "You are the Financial Report Analyst for a stock-ranking coordinator.\n\n"
+            "Your only job is fundamental analysis from saved company report data. "
+            "For this POC the ticker is AAPL.\n\n"
+            "Use only local-data/stocks/AAPL/financial_report/"
+            "latest_quarterly_report.md. Do not browse the internet.\n\n"
+            "Assess the latest quarterly report markdown for revenue, earnings, "
+            "margins, cash generation, guidance, and risks. Assign a fundamental "
+            "score from 1 to 5 where 5 is strongest.\n\n"
+            "Return one concise message with: signal, score, key evidence, and risks."
         ),
     },
     {
-        "key": "technical_fit",
-        "name": "Technical Fit Specialist",
+        "key": "sentiment",
+        "name": "Sentiment Analyst",
         "model": "claude-sonnet-4-6",
         "system": (
-            "You are the Technical Fit Specialist. You decide whether our "
-            "product actually does what the RFP asks for.\n\n"
-            "Inputs:\n"
-            "- The RFP text\n"
-            "- product-overview.md (the canonical capability map)\n\n"
-            "Output: a structured fit assessment:\n"
-            "1. Requirements we meet fully\n"
-            "2. Requirements we meet partially (and what's missing)\n"
-            "3. Requirements we don't meet at all\n"
-            "4. Overall fit score: high / medium / low\n"
-            "5. The single most important risk to flag to the coordinator"
-        ),
-    },
-    {
-        "key": "competitive",
-        "name": "Competitive Intel Analyst",
-        "model": "claude-haiku-4-5-20251001",  # Cheaper for a quick analyst lookup
-        "system": (
-            "You are the Competitive Intel Analyst. You identify who else "
-            "is likely competing for this RFP and how we should position.\n\n"
-            "Inputs:\n"
-            "- The RFP text\n"
-            "- The competitive-intel skill (your battlecard library)\n\n"
-            "Output:\n"
-            "1. The 2-3 most likely competitors based on the RFP shape\n"
-            "2. For each: their probable strengths and weaknesses on THIS deal\n"
-            "3. Our two best positioning angles\n"
-            "4. One trap to avoid"
+            "You are the Sentiment Analyst for a stock-ranking coordinator.\n\n"
+            "Your only job is sentiment analysis from saved news/social/analyst snippets. "
+            "For this POC the ticker is AAPL.\n\n"
+            "Use only local-data/stocks/AAPL/sentiment/data.json. "
+            "Do not browse the internet.\n\n"
+            "The JSON contract contains sentiment_value on a -1 to 1 scale, where "
+            "-1 is very negative, 0 is neutral, and 1 is very positive. Convert "
+            "that into a sentiment score from 1 to 5 where 5 is strongly positive.\n\n"
+            "Return one concise message with: signal, score, key evidence, and risks."
         ),
     },
 ]
@@ -119,17 +91,17 @@ def main() -> None:
             system=spec["system"],
             tools=[{"type": "agent_toolset_20260401"}],
             metadata={
-                "hackathon": "partner-basecamp-2026",
-                "track": "specialist-swarm",
+                "poc": "stock-ranking",
+                "ticker": "AAPL",
                 "role": spec["key"],
             },
         )
         specialist_ids[spec["key"]] = agent.id
-        print(f"  Created {spec['name']:32s} -> {agent.id}")
+        print(f"  Created {spec['name']:28s} -> {agent.id}")
 
     Path(".specialist_ids.json").write_text(json.dumps(specialist_ids, indent=2))
     print(f"\nSaved {len(specialist_ids)} specialist IDs to .specialist_ids.json")
-    print("Next: python upload_skills.py")
+    print("Next: uv run python create_coordinator.py")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,17 @@
+{
+  "ticker": "AAPL",
+  "status": "dummy",
+  "currency": "USD",
+  "last_close": 190.0,
+  "sma": {
+    "sma_20": 188.5,
+    "sma_200": 175.2,
+    "sma_1000": 142.8
+  },
+  "ema": {
+    "ema_20": 189.4,
+    "ema_200": 176.7,
+    "ema_1000": 145.1
+  },
+  "notes": "Dummy values only. Replace with one-time fetched or mocked AAPL trend indicators."
+}

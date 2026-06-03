@@ -1,0 +1,16 @@
+{
+  "ticker": "AAPL",
+  "subagent": "kurstrend",
+  "purpose": "price trend and technical indicator input",
+  "status": "dummy",
+  "source_type": "dummy_data_to_be_replaced_once_before_runtime",
+  "expected_contents": [
+    "last_close",
+    "sma.sma_20",
+    "sma.sma_200",
+    "sma.sma_1000",
+    "ema.ema_20",
+    "ema.ema_200",
+    "ema.ema_1000"
+  ]
+}
