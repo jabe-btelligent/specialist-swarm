@@ -84,7 +84,7 @@ those files.
 ## Live Browser Demo
 
 ```bash
-uv run python demo_server.py
+./run_demo_server.sh
 ```
 
 Then open <http://127.0.0.1:8000/> and click **Run orchestrator**. The page
@@ -93,6 +93,12 @@ Python process output into the browser.
 
 The live run still requires the setup files created by the POC build order:
 `.environment_id`, `.specialist_ids.json`, and `.coordinator_id`.
+
+To use another port:
+
+```bash
+./run_demo_server.sh 8010
+```
 
 ## One-Time AAPL Data Prep
 

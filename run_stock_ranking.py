@@ -42,6 +42,27 @@ def load_local_context() -> str:
     return "\n\n".join(blocks)
 
 
+def text_from_event(event: object) -> str:
+    for attr in ("content", "message", "thread_message", "agent_message"):
+        value = getattr(event, attr, None)
+        if value is None:
+            continue
+        if isinstance(value, str):
+            return value
+        content = getattr(value, "content", value)
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            parts = [
+                block.text
+                for block in content
+                if getattr(block, "type", None) == "text" and getattr(block, "text", None)
+            ]
+            if parts:
+                return "\n".join(parts)
+    return ""
+
+
 def main() -> None:
     load_dotenv()
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -74,8 +95,14 @@ def main() -> None:
         "Rules:\n"
         "1. Use only the local context below.\n"
         "2. Delegate to all three specialists in parallel.\n"
-        "3. Return a concise final ranking with scores, reasons, risks, and confidence.\n"
-        "4. If the files are still templates, do not invent market facts. Explain which "
+        "3. After each specialist reply, echo the specialist output to the user in this exact format:\n"
+        "   SUBAGENT_OUTPUT_START: Kurstrend Analyst\n"
+        "   score: <score>/5\n"
+        "   <concise specialist output>\n"
+        "   SUBAGENT_OUTPUT_END\n"
+        "   Repeat with Financial Report Analyst and Sentiment Analyst.\n"
+        "4. Return a concise final ranking with scores, reasons, risks, and confidence.\n"
+        "5. If the files are still templates, do not invent market facts. Explain which "
         "files need to be filled.\n\n"
         f"{context}"
     )
@@ -102,6 +129,11 @@ def main() -> None:
                 print(f"  [thread running]   {name}", flush=True)
             elif t == "agent.thread_message_received":
                 print(f"  [reply <-]         {event.from_agent_name}", flush=True)
+                specialist_text = text_from_event(event).strip()
+                if specialist_text:
+                    print(f"SUBAGENT_OUTPUT_START: {event.from_agent_name}", flush=True)
+                    print(specialist_text, flush=True)
+                    print("SUBAGENT_OUTPUT_END", flush=True)
             elif t == "agent.thread_message_sent":
                 print(f"  [delegate ->]      {event.to_agent_name}", flush=True)
             elif t == "agent.message":

@@ -383,7 +383,7 @@
     .agent-score {
       min-width: 72px;
       text-align: right;
-      font-size: 0.9rem;
+      font-size: 1rem;
       font-weight: 800;
       color: var(--muted);
     }
@@ -411,6 +411,21 @@
       border-radius: inherit;
       background: linear-gradient(90deg, var(--warn), var(--good));
       transition: width 400ms ease;
+    }
+
+    .agent-output {
+      min-height: 118px;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+      color: #344054;
+      font: 0.8rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     .two-col {
@@ -653,10 +668,12 @@
               <h3>Kurstrend Analyst</h3>
               <p class="muted">SMA / EMA trend from saved JSON</p>
             </div>
-            <div class="agent-score" id="kurstrendState">waiting</div>
+            <div class="agent-score" id="kurstrendScore">--/5</div>
           </div>
           <div class="bar"><span id="kurstrendBar"></span></div>
+          <p class="muted" id="kurstrendState">waiting</p>
           <p class="muted">Input: <code>local-data/stocks/AAPL/kurstrend/data.json</code></p>
+          <div class="agent-output" id="kurstrendOutput">Specialist output will appear here.</div>
         </article>
 
         <article class="agent-card" id="financialCard">
@@ -665,10 +682,12 @@
               <h3>Financial Report Analyst</h3>
               <p class="muted">Fundamentals from quarterly Markdown</p>
             </div>
-            <div class="agent-score" id="financialState">waiting</div>
+            <div class="agent-score" id="financialScore">--/5</div>
           </div>
           <div class="bar"><span id="financialBar"></span></div>
+          <p class="muted" id="financialState">waiting</p>
           <p class="muted">Input: <code>local-data/stocks/AAPL/financial_report/latest_quarterly_report.md</code></p>
+          <div class="agent-output" id="financialOutput">Specialist output will appear here.</div>
         </article>
 
         <article class="agent-card" id="sentimentCard">
@@ -677,10 +696,12 @@
               <h3>Sentiment Analyst</h3>
               <p class="muted">Market sentiment packet</p>
             </div>
-            <div class="agent-score" id="sentimentState">waiting</div>
+            <div class="agent-score" id="sentimentScore">--/5</div>
           </div>
           <div class="bar"><span id="sentimentBar"></span></div>
+          <p class="muted" id="sentimentState">waiting</p>
           <p class="muted">Input: <code>local-data/stocks/AAPL/sentiment/latest_sentiment.md</code></p>
+          <div class="agent-output" id="sentimentOutput">Specialist output will appear here.</div>
         </article>
       </div>
     </section>
@@ -851,23 +872,38 @@ Overall Sentiment Score:
     const ratingValue = document.getElementById("ratingValue");
     const needle = document.getElementById("needle");
     const finalText = [];
+    let currentAgentOutput = null;
 
     const agents = {
       "Kurstrend Analyst": {
         card: document.getElementById("kurstrendCard"),
         state: document.getElementById("kurstrendState"),
-        bar: document.getElementById("kurstrendBar")
+        score: document.getElementById("kurstrendScore"),
+        bar: document.getElementById("kurstrendBar"),
+        output: document.getElementById("kurstrendOutput")
       },
       "Financial Report Analyst": {
         card: document.getElementById("financialCard"),
         state: document.getElementById("financialState"),
-        bar: document.getElementById("financialBar")
+        score: document.getElementById("financialScore"),
+        bar: document.getElementById("financialBar"),
+        output: document.getElementById("financialOutput")
       },
       "Sentiment Analyst": {
         card: document.getElementById("sentimentCard"),
         state: document.getElementById("sentimentState"),
-        bar: document.getElementById("sentimentBar")
+        score: document.getElementById("sentimentScore"),
+        bar: document.getElementById("sentimentBar"),
+        output: document.getElementById("sentimentOutput")
       }
+    };
+
+    const agentAliases = {
+      kurstrend: "Kurstrend Analyst",
+      technical: "Kurstrend Analyst",
+      financial_report: "Financial Report Analyst",
+      financial: "Financial Report Analyst",
+      sentiment: "Sentiment Analyst"
     };
 
     function setStatus(label, state) {
@@ -885,6 +921,7 @@ Overall Sentiment Score:
     function resetView() {
       terminal.textContent = "";
       finalText.length = 0;
+      currentAgentOutput = null;
       scoreValue.textContent = "--";
       ratingValue.textContent = "RUNNING";
       ratingValue.className = "rating";
@@ -892,7 +929,9 @@ Overall Sentiment Score:
       Object.values(agents).forEach((agent) => {
         agent.card.className = "agent-card";
         agent.state.textContent = "waiting";
+        agent.score.textContent = "--/5";
         agent.bar.style.width = "0%";
+        agent.output.textContent = "Specialist output will appear here.";
       });
       setFlow("flowLoad");
     }
@@ -908,6 +947,79 @@ Overall Sentiment Score:
       agent.card.className = `agent-card ${state}`;
       agent.state.textContent = state === "done" ? "replied" : "running";
       agent.bar.style.width = state === "done" ? "100%" : "55%";
+    }
+
+    function setAgentScore(name, score) {
+      const agent = agents[name];
+      const numeric = Number.parseFloat(score);
+      if (!agent || Number.isNaN(numeric)) return;
+      const bounded = Math.max(1, Math.min(5, numeric));
+      agent.score.textContent = `${bounded.toFixed(bounded % 1 === 0 ? 0 : 1)}/5`;
+      agent.bar.style.width = `${(bounded / 5) * 100}%`;
+    }
+
+    function resolveAgentName(value) {
+      const trimmed = value.trim();
+      if (agents[trimmed]) return trimmed;
+      const lower = trimmed.toLowerCase().replace(/\s+/g, "_");
+      return agentAliases[lower] || null;
+    }
+
+    function appendAgentOutput(name, text) {
+      const agent = agents[name];
+      if (!agent) return;
+      if (agent.output.textContent === "Specialist output will appear here.") {
+        agent.output.textContent = "";
+      }
+      agent.output.textContent += `${text}\n`;
+      agent.output.scrollTop = agent.output.scrollHeight;
+
+      const scoreMatch = text.match(/\bscore\b[^0-9]*(\d(?:\.\d+)?)/i) || text.match(/\b(\d(?:\.\d+)?)\s*\/\s*5\b/);
+      if (scoreMatch) setAgentScore(name, scoreMatch[1]);
+    }
+
+    function handleSubagentOutputLine(text) {
+      const startMatch = text.match(/^SUBAGENT_OUTPUT_START:\s*(.+)$/);
+      if (startMatch) {
+        const name = resolveAgentName(startMatch[1]);
+        currentAgentOutput = name;
+        if (name) {
+          markAgent(name, "done");
+          agents[name].output.textContent = "";
+          agents[name].state.textContent = "output streaming";
+        }
+        return true;
+      }
+
+      if (text.trim() === "SUBAGENT_OUTPUT_END") {
+        if (currentAgentOutput && agents[currentAgentOutput]) {
+          agents[currentAgentOutput].state.textContent = "output received";
+          agents[currentAgentOutput].card.className = "agent-card done";
+        }
+        currentAgentOutput = null;
+        return true;
+      }
+
+      if (currentAgentOutput) {
+        appendAgentOutput(currentAgentOutput, text);
+        return true;
+      }
+
+      return false;
+    }
+
+    function parseComponentScore(text) {
+      const rowMatch = text.match(/\|\s*(Financial report|Kurstrend|Sentiment)\s*\|\s*(\d(?:\.\d+)?)\s*\/\s*5/i);
+      if (rowMatch) {
+        const name = resolveAgentName(rowMatch[1]);
+        if (name) setAgentScore(name, rowMatch[2]);
+      }
+
+      const receivedMatch = text.match(/\b(Financial report|Kurstrend|Sentiment)\b.*?\((\d(?:\.\d+)?)\s*\/\s*5\)/i);
+      if (receivedMatch) {
+        const name = resolveAgentName(receivedMatch[1]);
+        if (name) setAgentScore(name, receivedMatch[2]);
+      }
     }
 
     function updateFinalResult() {
@@ -934,6 +1046,7 @@ Overall Sentiment Score:
 
     function handleOutput(text) {
       appendLine(text);
+      parseComponentScore(text);
 
       if (text.includes("Loading local")) setFlow("flowLoad");
       if (text.includes("[delegate ->]") || text.includes("[thread spawned]")) setFlow("flowDelegate");
@@ -948,9 +1061,12 @@ Overall Sentiment Score:
         }
       });
 
+      const isSubagentOutputLine = handleSubagentOutputLine(text);
       if (!text.startsWith("  [") && !text.startsWith("Loading local") && !text.startsWith("Starting session") && !text.startsWith("Coordinator transcript saved")) {
-        finalText.push(text);
-        updateFinalResult();
+        if (!isSubagentOutputLine) {
+          finalText.push(text);
+          updateFinalResult();
+        }
       }
     }
 
