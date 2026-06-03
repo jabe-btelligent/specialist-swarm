@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 
 from anthropic import Anthropic
+from dotenv import load_dotenv
 
 
 COORDINATOR_SYSTEM = """\
@@ -72,6 +73,7 @@ fast because the RFP deadline is real.
 
 
 def main() -> None:
+    load_dotenv()
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise SystemExit("Set ANTHROPIC_API_KEY before running.")

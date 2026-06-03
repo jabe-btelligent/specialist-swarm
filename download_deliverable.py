@@ -14,12 +14,14 @@ import sys
 from pathlib import Path
 
 from anthropic import Anthropic
+from dotenv import load_dotenv
 
 
 OUTPUT_DIR = Path("outputs")
 
 
 def main() -> None:
+    load_dotenv()
     # Resolve session ID
     if len(sys.argv) > 1:
         session_id = sys.argv[1].strip()

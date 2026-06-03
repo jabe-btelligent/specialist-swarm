@@ -16,6 +16,7 @@ from pathlib import Path
 
 from anthropic import Anthropic
 from anthropic.lib import files_from_dir
+from dotenv import load_dotenv
 
 
 # Map skill directory name → specialist key that should get it
@@ -27,6 +28,7 @@ SKILL_TO_SPECIALIST = {
 
 
 def main() -> None:
+    load_dotenv()
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise SystemExit("Set ANTHROPIC_API_KEY before running.")
 

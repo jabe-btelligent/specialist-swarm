@@ -1,0 +1,10 @@
+[project]
+name = "specialist-swarm"
+version = "0.1.0"
+description = "Deal Desk specialist swarm using Anthropic Managed Agents"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.40.0",
+    "python-dotenv>=1.0.0",
+]
+

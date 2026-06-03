@@ -1,0 +1,11 @@
+.env
+.venv/
+uv.lock
+__pycache__/
+*.py[cod]
+.specialist_ids.json
+.skill_ids.json
+.coordinator_id
+.environment_id
+.last_session_id
+outputs/
