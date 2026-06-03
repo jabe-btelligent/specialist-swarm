@@ -1,17 +1,22 @@
 {
   "ticker": "AAPL",
-  "status": "dummy",
+  "status": "fetched",
   "currency": "USD",
-  "last_close": 190.0,
+  "source": "Yahoo Finance via yfinance with curl_cffi Chrome impersonation",
+  "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?range=5y&interval=1d&events=history&includeAdjustedClose=true",
+  "fetched_at_utc": "2026-06-03T13:31:23+00:00",
+  "price_date": "2026-06-02",
+  "history_start_date": "2021-06-03",
+  "history_close_count": 1255,
+  "last_close": 315.2,
   "sma": {
-    "sma_20": 188.5,
-    "sma_200": 175.2,
-    "sma_1000": 142.8
+    "sma_20": 300.7685,
+    "sma_200": 264.0141,
+    "sma_1000": 202.8121
   },
   "ema": {
-    "ema_20": 189.4,
-    "ema_200": 176.7,
-    "ema_1000": 145.1
-  },
-  "notes": "Dummy values only. Replace with one-time fetched or mocked AAPL trend indicators."
+    "ema_20": 300.2621,
+    "ema_200": 262.8028,
+    "ema_1000": 212.4045
+  }
 }

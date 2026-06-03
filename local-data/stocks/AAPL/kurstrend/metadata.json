@@ -2,8 +2,8 @@
   "ticker": "AAPL",
   "subagent": "kurstrend",
   "purpose": "price trend and technical indicator input",
-  "status": "dummy",
-  "source_type": "dummy_data_to_be_replaced_once_before_runtime",
+  "status": "fetched",
+  "source_type": "yahoo_finance_chart_api",
   "expected_contents": [
     "last_close",
     "sma.sma_20",
@@ -12,5 +12,7 @@
     "ema.ema_20",
     "ema.ema_200",
     "ema.ema_1000"
-  ]
+  ],
+  "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?range=5y&interval=1d&events=history&includeAdjustedClose=true",
+  "last_updated_utc": "2026-06-03T13:31:23+00:00"
 }
