@@ -17,6 +17,8 @@ from pathlib import Path
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
+from tools.financial_report import TOOL_DEFINITION as FINANCIAL_REPORT_TOOL
+
 
 SPECIALISTS = [
     {
@@ -42,16 +44,18 @@ SPECIALISTS = [
         "name": "Financial Report Analyst",
         "model": "claude-sonnet-4-6",
         "system": (
-            "You are the Financial Report Analyst for a stock-ranking coordinator.\n\n"
-            "Your only job is fundamental analysis from saved company report data. "
-            "For this POC the ticker is AAPL.\n\n"
-            "Use only local-data/stocks/AAPL/financial_report/"
-            "latest_quarterly_report.md. Do not browse the internet.\n\n"
-            "Assess the latest quarterly report markdown for revenue, earnings, "
-            "margins, cash generation, guidance, and risks. Assign a fundamental "
-            "score from 1 to 5 where 5 is strongest.\n\n"
+            "You are the Financial Report Analyst for a stock-advisor coordinator.\n\n"
+            "Your only job is fundamental analysis of the quarterly financial report "
+            "for whichever ticker the coordinator assigns to you.\n\n"
+            "First action: call get_financial_report with the ticker symbol the "
+            "coordinator provided. Do not proceed until you have the report in hand. "
+            "Do not browse the internet — the report tool is your only data source.\n\n"
+            "Assess the report for revenue growth, earnings, margins, cash generation, "
+            "forward guidance, and key risks. Assign a fundamental score from 1 to 5 "
+            "where 5 is the strongest buy signal.\n\n"
             "Return one concise message with: signal, score, key evidence, and risks."
         ),
+        "tools": [FINANCIAL_REPORT_TOOL],
     },
     {
         "key": "sentiment",
@@ -91,7 +95,7 @@ def main() -> None:
             name=spec["name"],
             model=spec["model"],
             system=spec["system"],
-            tools=[{"type": "agent_toolset_20260401"}],
+            tools=[{"type": "agent_toolset_20260401"}, *spec.get("tools", [])],
             metadata={
                 "poc": "stock-ranking",
                 "ticker": "AAPL",
